@@ -15,15 +15,16 @@ services:
       - db
 
   airdrop_app:
-    image: public.ecr.aws/i0e4n2k8/ment-airdrop:latest
+    build: .
     container_name: airdrop_app
     depends_on:
       - airdrop_db
     env_file:
       - .env.deploy
+    ports:
+      - '80:3000'
     restart: always
     networks:
-      - web
       - db
 
 volumes:
@@ -31,6 +32,3 @@ volumes:
 
 networks:
   db:
-  web:
-    name: web
-    external: true
