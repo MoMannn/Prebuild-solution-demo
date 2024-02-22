@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import UploadSVG from '~/assets/images/upload.svg';
-import colors from '~/tailwind.colors';
 import { useAccount } from 'use-wagmi';
 import { AirdropStatus } from '~/lib/values/general.values';
 
@@ -8,7 +7,7 @@ definePageMeta({
   layout: 'admin',
 });
 useHead({
-  title: 'Mint your MENT Token',
+  title: 'Apillon email airdrop prebuilt solution',
 });
 
 const message = useMessage();
@@ -178,25 +177,21 @@ function checkUnfinishedRecipients() {
 
       <n-space class="w-full my-8" size="large" align="center" justify="space-between">
         <n-space size="large">
-          <Btn type="primary" class="text-black" @click="getUsers()">
-            <span class="text-black">Refresh</span>
-          </Btn>
-          <Btn :color="colors.blue" class="text-black" @click="modalUploadCsvVisible = true">
-            <span class="text-black">Upload CSV</span>
+          <Btn type="primary" @click="getUsers()"> Refresh </Btn>
+          <Btn type="primary" @click="modalUploadCsvVisible = true">
+            Upload CSV
           </Btn>
           <Btn type="secondary" @click="addRecipient">
-            <span class="text-black">Add recipient</span>
+            Add recipient
           </Btn>
         </n-space>
 
         <div v-if="data && data.length" class="flex gap-4 items-center">
           <Btn
-            :color="colors.blue"
-            class="text-black"
             :disabled="!data || data.length === 0"
             @click="saveRecipients()"
           >
-            <span class="text-black">Save recipients</span>
+            Save recipients
           </Btn>
         </div>
       </n-space>
@@ -215,7 +210,7 @@ function checkUnfinishedRecipients() {
             Select and upload the CSV file containing addresses to which you wish to distribute
             NFTs.
           </p>
-          <Btn type="builders" class="text-black" size="tiny" href="/files/example.csv">
+          <Btn type="builders" size="tiny" href="/files/example.csv">
             Download CSV sample
           </Btn>
         </div>

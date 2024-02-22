@@ -1,15 +1,14 @@
 <script lang="ts" setup>
-type Address = `0x${string}`;
-
-import SuccessSVG from '~/assets/images/success.svg';
-import colors from '~/tailwind.colors';
 import { useAccount, useConnect, useWalletClient } from 'use-wagmi';
+import SuccessSVG from '~/assets/images/success.svg';
+
+type Address = `0x${string}`;
 
 definePageMeta({
   layout: 'claim',
 });
 useHead({
-  title: 'Mint your MENT Token',
+  title: 'Apillon email airdrop prebuild solution',
 });
 
 const config = useRuntimeConfig();
@@ -51,8 +50,9 @@ async function claimAirdrop() {
     }
 
     const signature = await walletClient.value.signMessage({
-      message: `Sign to verify and mint your free Ment NFT!\n${timestamp}`,
+      message: `Sign to verify you wallet.\n${timestamp}`,
     });
+
     const res = await $api.post<ClaimResponse>('/users/claim', {
       jwt: query.token?.toString() || '',
       signature,
@@ -63,11 +63,11 @@ async function claimAirdrop() {
       txWait.hash.value = res.data.transactionHash as Address;
 
       console.debug('Transaction', txWait.hash.value);
-      message.info('Minting of your MENT token has begun.');
+      message.info('Minting of your NFT has begun.');
 
       const receipt = await txWait.wait();
       console.debug(receipt);
-      message.success("You've successfully claimed your MENT token.");
+      message.success('You successfully claimed NFT');
 
       if (
         config.public.METADATA_BASE_URI &&
@@ -153,29 +153,20 @@ async function getMetadata(id: number, transactionHash: string) {
     <div v-if="!isConnected" class="my-8 text-center">
       <h3 class="mb-6">Almost there!</h3>
       <p>
-        But first, connect a compatible digital wallet. This step is crucial for securely receiving
-        and managing the MENT token you’re about to receive.
+        But first, connect compatible digital wallet. This step is crucial for securely receiving
+        and managing the token you’ll about to receive.
       </p>
     </div>
 
     <div v-else class="my-8 text-center">
       <h3 class="mb-6">Great success!</h3>
       <p>
-        You’ve connected your wallet and you are one click away from your bonus-filled MENT token.
-        See what the future of MENT holds for you 🔮
+        To join this NFT airdrop, you need to connect your EVM compatible wallet. This step is
+        crucial for securely receiving and managing the airdropped NFTs.
       </p>
     </div>
 
     <ConnectWallet v-if="!isConnected" size="large" />
-    <Btn
-      v-else
-      size="large"
-      class="text-black"
-      :color="colors.blue"
-      :loading="loading"
-      @click="claimAirdrop()"
-    >
-      <span class="text-black">Claim your MENT token</span>
-    </Btn>
+    <Btn v-else size="large" :loading="loading" @click="claimAirdrop()">Claim airdrop</Btn>
   </div>
 </template>

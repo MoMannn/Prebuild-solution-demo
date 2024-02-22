@@ -65,7 +65,7 @@ export default function useContract() {
       });
       importNft.value = null;
 
-      message.success("You've successfully imported your MENT token to your wallet.");
+      message.success("You've successfully imported your token to your wallet.");
     } catch (e) {
       contractError(e);
     }

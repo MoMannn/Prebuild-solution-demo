@@ -1,18 +1,14 @@
 <script lang="ts" setup>
 import VueHcaptcha from '@hcaptcha/vue3-hcaptcha';
-import colors from '~/tailwind.colors';
 import type { FormInst, FormRules, FormValidationError } from 'naive-ui';
 import { ruleRequired } from '~/lib/utils/validation';
 
 type SignupForm = {
   email: string | null;
-  termsAndConditions: boolean;
   token?: any;
 };
 
 const router = useRouter();
-
-const modalTermsAndConditionsVisible = ref<boolean>(false);
 
 const message = useMessage();
 const emit = defineEmits(['submitSuccess']);
@@ -31,7 +27,6 @@ const { handleError } = useErrors();
 const formRef = ref<FormInst | null>(null);
 const formData = ref<SignupForm>({
   email: null,
-  termsAndConditions: false,
   token: null as any,
 });
 
@@ -84,32 +79,20 @@ function onCaptchaVerify(token: string) {
 <template>
   <n-form ref="formRef" :model="formData" :rules="rules" @submit.prevent="handleSubmit">
     <!--  Login email -->
-    <n-form-item path="email">
+    <n-form-item path="email" label="Email">
       <n-input
         v-model:value="formData.email"
         :input-props="{ type: 'email' }"
-        placeholder="Your e-mail"
+        placeholder="test@email.com"
         clearable
       />
     </n-form-item>
-
-    <div class="flex pb-6 space-x-2">
-      <div class="my-auto">
-        <n-checkbox v-model:checked="formData.termsAndConditions" size="medium" />
-      </div>
-
-      <p>
-        I have read and agree to
-        <u class="cursor-pointer" @click="modalTermsAndConditionsVisible = true"
-          ><strong>Terms and Conditions and Privacy Policy.</strong></u
-        >
-      </p>
-    </div>
 
     <!-- Hcaptcha -->
     <vue-hcaptcha
       ref="captchaInput"
       :sitekey="captchaKey"
+      theme="dark"
       @error="onCaptchaError"
       @verify="onCaptchaVerify"
       @expired="onCaptchaExpire"
@@ -123,21 +106,12 @@ function onCaptchaVerify(token: string) {
       <Btn
         type="primary"
         size="large"
-        :color="colors.blue"
         :loading="loading"
-        :disabled="!formData.email || !formData.token || !formData.termsAndConditions"
+        :disabled="!formData.email || !formData.token"
         @click="handleSubmit"
       >
-        <span class="text-black">Sign up</span>
+        Sign up
       </Btn>
     </n-form-item>
-
-    <modal
-      :show="modalTermsAndConditionsVisible"
-      @close="() => (modalTermsAndConditionsVisible = false)"
-      @update:show="modalTermsAndConditionsVisible = false"
-    >
-      <TermsAndConditions @close="() => (modalTermsAndConditionsVisible = false)" />
-    </modal>
   </n-form>
 </template>

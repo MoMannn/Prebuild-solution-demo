@@ -16,9 +16,9 @@ if (env === Environments.prod) {
 }
 
 const meta = {
-  title: 'Mint your MENT Token',
-  description: 'Powered by Apillon.',
-  url: 'https://nft.ment.si/',
+  title: 'Apillon email prebuild solution',
+  description: 'airdrop email',
+  url: 'https://apillon.io/',
 };
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -80,7 +80,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en' },
       bodyAttrs: { id: 'kalm' },
       title: meta.title,
-      titleTemplate: `%s`,
+      titleTemplate: `%s - ${meta.title}`,
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no',
 

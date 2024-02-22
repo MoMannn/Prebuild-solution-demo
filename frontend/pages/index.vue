@@ -1,39 +1,19 @@
 <script lang="ts" setup>
-import SuperRareJpg from '~/assets/images/superrare.jpg';
-
-const { isMd } = useScreen();
-
 useHead({
-  title: 'Mint your MENT Token',
+  title: 'Apillon email airdrop prebuilt solution',
 });
+
+const registered = ref<boolean>(false);
 </script>
 
 <template>
-  <div class="my-10 flex flex-col gap-x-12 gap-y-8 md:flex-row lg:my-14 max-w-4xl mx-auto">
-    <div class="max-w-md w-full lg:w-1/2">
-      <span class="mb-2 inline-block text-xs font-bold uppercase tracking-[0.2em]">
-        The Shape of MENT to Come
-      </span>
-      <h1>Sign up and win one of 200 MENT tokens</h1>
+  <div v-if="registered" class="max-w-sm mx-auto">
+    <h3 class="my-8">You have successfully signed up for NFT Airdrop.</h3>
+    <p>You will receive an email with a claim link. Open the link and follow the instructions.</p>
+  </div>
+  <div v-else class="max-w-sm w-full mx-auto">
+    <h3 class="my-8">Sign up for airdrop</h3>
 
-      <p class="body-lg">
-        By signing up, you’ll be in the game for the hottest perks in the form of MENT token
-      </p>
-      <div class="max-w-sm">
-        <FormSighUp btn-text="Sign up" />
-      </div>
-    </div>
-    <div v-if="isMd" class="flex-cc relative min-w-[20rem] w-full lg:w-1/2">
-      <img :src="SuperRareJpg" class="mx-auto" width="461" height="461" alt="Super rare NFT" />
-      <Btn
-        class="!text-black mt-3"
-        size="large"
-        type="secondary"
-        href="https://moonbeans.io/collections/ment"
-      >
-        View MENT Token collection
-        <NuxtIcon name="arrow" class="absolute right-6 icon-auto" />
-      </Btn>
-    </div>
+    <FormSighUp @submit-success="registered = true" />
   </div>
 </template>

@@ -4,35 +4,29 @@
     <Btn
       v-if="isConnected && (!admin || userStore.jwt)"
       v-bind="$attrs"
-      class="text-black"
-      :color="colors.blue"
       :size="size"
       :loading="loading || isLoading"
       @click="disconnectWallet()"
     >
-      <span class="text-black">Disconnect</span>
+      Disconnect
     </Btn>
     <Btn
       v-else-if="isConnected"
       v-bind="$attrs"
-      class="text-black"
-      :color="colors.blue"
       :size="size"
       :loading="loading || isLoading"
       @click="login()"
     >
-      <span class="text-black">Login</span>
+      Login
     </Btn>
     <Btn
       v-else
       v-bind="$attrs"
-      class="text-black"
-      :color="colors.blue"
       :size="size"
       :loading="loading || isLoading"
       @click="modalWalletVisible = true"
     >
-      <span class="text-black">Connect your wallet</span>
+      Connect wallet
     </Btn>
   </div>
 
@@ -46,7 +40,6 @@
 </template>
 
 <script lang="ts" setup>
-import colors from '~/tailwind.colors';
 import type { Size } from 'naive-ui/es/button/src/interface';
 import { useAccount, useConnect, useDisconnect, useWalletClient } from 'use-wagmi';
 
@@ -107,7 +100,7 @@ async function login() {
     }
 
     const timestamp = new Date().getTime();
-    const message = 'Sign to verify and mint your free Ment NFT!';
+    const message = 'Sign to verify you wallet.';
 
     const signature = await walletClient.value.signMessage({
       message: `${message}\n${timestamp}`,

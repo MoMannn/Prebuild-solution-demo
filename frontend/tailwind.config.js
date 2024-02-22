@@ -23,7 +23,7 @@ module.exports = {
     },
 
     colors: {
-      primary: '#74A8D6',
+      primary: '#F9FF73',
       secondary: '#78DCE8',
 
       transparent: 'transparent',
@@ -35,26 +35,18 @@ module.exports = {
       pink: '#FF6188',
       green: '#A9DC76',
       violet: '#AB9DF2',
-      blue: '#74A8D6',
+      blue: '#78DCE8',
       discord: '#4554E9',
-      
-      lineup: '#CBAB25',
-      konference: '#91331F',
-      vstopnice: '#FF9D16',
-      sprejemi: '#15D0AB',
-      specialke: '#DD73DD',
-      info: '#E9E8C4',
-      button: '#AC56AC',
 
-      body: '#000',
+      body: '#9D9E91',
       bodyDark: '#6A6B63',
 
       bg: {
         lightest: '#F4F4EA',
         lighter: '#313442',
-        light: '#ba9d22',
-        DEFAULT: '#CBAB25',
-        dark: '#ba9d22',
+        light: '#1E212B',
+        DEFAULT: '#141721',
+        dark: '#06080F',
       },
     },
 

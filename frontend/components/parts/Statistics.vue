@@ -2,8 +2,8 @@
   <div v-if="statistics" class="flex gap-8 mb-8">
     <div class="px-4 py-3 bg-bg-light rounded-lg min-w-[13em]">
       <h2 class="inline-block">{{ statistics.airdropped }}</h2>
-      <span class="ml-1">/{{ statistics.total || '?' }}</span>
-      <p>airdropped/available NFTs</p>
+      <span class="text-body ml-1">/{{ statistics.total || '?' }}</span>
+      <p class="text-white">airdropped/available NFTs</p>
     </div>
     <div class="px-4 py-3 bg-bg-light rounded-lg min-w-[13em]">
       <h2>{{ statistics.emailSent }}</h2>

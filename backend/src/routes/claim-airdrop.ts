@@ -1,21 +1,24 @@
-import { Application } from 'express';
-import { NextFunction, Request, Response } from '../http';
-import { RouteErrorCode, ValidatorErrorCode } from '../config/values';
-import { ResourceError } from '../lib/errors';
-import { readEmailAirdropToken } from '../lib/jwt';
-import { AirdropStatus, User } from '../models/user';
-import { Identity, LogLevel, Nft } from '@apillon/sdk';
-import { LogType, writeLog } from '../lib/logger';
-import { env } from '../config/env';
+import { Application } from "express";
+import { NextFunction, Request, Response } from "../http";
+import { RouteErrorCode, ValidatorErrorCode } from "../config/values";
+import { ResourceError } from "../lib/errors";
+import { readEmailAirdropToken } from "../lib/jwt";
+import { AirdropStatus, User } from "../models/user";
+import { Identity, LogLevel, Nft } from "@apillon/sdk";
+import { LogType, writeLog } from "../lib/logger";
+import { env } from "../config/env";
 
 /**∂
  * Installs new route on the provided application.
  * @param app ExpressJS application.
  */
 export function inject(app: Application) {
-  app.post('/users/claim', (req: Request, res: Response, next: NextFunction) => {
-    resolve(req, res).catch(next);
-  });
+  app.post(
+    "/users/claim",
+    (req: Request, res: Response, next: NextFunction) => {
+      resolve(req, res).catch(next);
+    }
+  );
 }
 
 export async function resolve(req: Request, res: Response): Promise<void> {
@@ -30,7 +33,7 @@ export async function resolve(req: Request, res: Response): Promise<void> {
     walletAddress: body.address,
     signature: body.signature,
     signatureValidityMinutes: 10,
-    message: `Sign to verify and mint your free Ment NFT!\n${body.timestamp}`,
+    message: `Sign to verify you wallet.\n${body.timestamp}`,
     timestamp: body.timestamp,
   });
 
@@ -83,14 +86,20 @@ export async function resolve(req: Request, res: Response): Promise<void> {
       ? AirdropStatus.AIRDROP_COMPLETED
       : AirdropStatus.AIRDROP_ERROR;
   } catch (e) {
-    writeLog(LogType.ERROR, 'Error creating airdrop', 'claim-airdrop.ts', 'resolve', e);
+    writeLog(
+      LogType.ERROR,
+      "Error creating airdrop",
+      "claim-airdrop.ts",
+      "resolve",
+      e
+    );
     user.airdrop_status = AirdropStatus.AIRDROP_ERROR;
   }
 
   await user.update();
   if (response && response.success) {
     return res.respond(200, {
-      success: 'ok',
+      success: "ok",
       transactionHash: response.transactionHash,
     });
   } else {

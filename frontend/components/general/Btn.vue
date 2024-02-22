@@ -91,6 +91,7 @@ const btnClass = computed(() => {
       'w-full': props.type !== 'link' && props.size === 'large',
       'text-primary underline': props.type === 'link',
       'font-bold': props.type !== 'link',
+      '!text-white': props.type === 'secondary',
       'pointer-events-none pointer-default': props.disabled || props.loading,
       'opacity-60': props.disabled,
       'hover-bounce': props.type !== 'link' && props.type !== 'builders',

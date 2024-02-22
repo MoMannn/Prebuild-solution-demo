@@ -35,7 +35,6 @@ defineProps({
   position: absolute;
   top: 50%;
   left: 50%;
-  color: black;
 
   .path {
     stroke-dasharray: 8, 10;
