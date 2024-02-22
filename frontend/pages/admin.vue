@@ -8,7 +8,7 @@ definePageMeta({
   layout: 'admin',
 });
 useHead({
-  title: 'Apillon email airdrop prebuilt solution',
+  title: 'Mint your MENT Token',
 });
 
 const message = useMessage();
@@ -178,9 +178,11 @@ function checkUnfinishedRecipients() {
 
       <n-space class="w-full my-8" size="large" align="center" justify="space-between">
         <n-space size="large">
-          <Btn type="primary" class="text-black" @click="getUsers()"> Refresh </Btn>
+          <Btn type="primary" class="text-black" @click="getUsers()">
+            <span class="text-black">Refresh</span>
+          </Btn>
           <Btn :color="colors.blue" class="text-black" @click="modalUploadCsvVisible = true">
-            Upload CSV
+            <span class="text-black">Upload CSV</span>
           </Btn>
           <Btn type="secondary" @click="addRecipient">
             <span class="text-black">Add recipient</span>
@@ -194,7 +196,7 @@ function checkUnfinishedRecipients() {
             :disabled="!data || data.length === 0"
             @click="saveRecipients()"
           >
-            Save recipients
+            <span class="text-black">Save recipients</span>
           </Btn>
         </div>
       </n-space>

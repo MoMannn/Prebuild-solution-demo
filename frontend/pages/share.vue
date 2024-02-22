@@ -3,12 +3,14 @@ import { prepareOG } from '~/lib/utils/helpers';
 import { Chains } from '~/lib/values/general.values';
 
 useHead({
-  title: 'PINK PASS',
+  title: 'Mint your MENT Token',
 });
 
 const router = useRouter();
 const { query } = useRoute();
+const message = useMessage();
 const config = useRuntimeConfig();
+const { watchAsset } = useContract();
 
 useSeoMeta(
   prepareOG(`Just minted my ${query.name} NFT on https://nft.ment.si!`, ``, `${query.image}`)
@@ -25,6 +27,7 @@ const metadata = ref<Metadata | null>({
   description: `${query?.description}`,
   image: `${query?.image}`,
 });
+const nftId = ref<string | undefined>(`${query?.nftId}`);
 const txHash = ref<string | undefined>(`${query?.txHash}`);
 
 function transactionLink(transactionHash?: string | null): string {
@@ -63,6 +66,39 @@ function transactionLink(transactionHash?: string | null): string {
       </div>
       <div class="mt-4 text-center">
         <p class="mb-4">{{ metadata.description }}</p>
+        <!-- Import NFT -->
+        <Btn
+          v-if="query?.nftId && nftId"
+          size="large"
+          class="!text-black mb-6 mobile:hidden"
+          @click="watchAsset(nftId)"
+        >
+          Import NFT to wallet
+        </Btn>
+
+        <!-- Moonbeans -->
+        <Btn
+          v-if="query?.nftId && nftId"
+          class="!text-black mb-3"
+          size="large"
+          type="secondary"
+          :href="`https://moonbeans.io/item/ment/${nftId}`"
+        >
+          View your MENT Token
+          <NuxtIcon name="arrow" class="absolute right-6 icon-auto" />
+        </Btn>
+        <Btn
+          v-else
+          class="!text-black mb-3"
+          size="large"
+          type="secondary"
+          href="https://moonbeans.io/collections/ment"
+        >
+          View MENT Token collection
+          <NuxtIcon name="arrow" class="absolute right-6 icon-auto" />
+        </Btn>
+
+        <!-- Transaction -->
         <a
           v-if="query?.txHash && txHash"
           :href="transactionLink(txHash)"

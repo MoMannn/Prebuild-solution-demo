@@ -2,8 +2,12 @@
 h1,
 .h1 {
   @apply font-sans font-bold;
-  font-size: 1.75rem;
-  line-height: 1.43;
+  font-size: 1.5rem;
+  line-height: 1.3;
+
+  @screen md {
+    font-size: 2rem;
+  }
 }
 
 /* Headline 2 */
