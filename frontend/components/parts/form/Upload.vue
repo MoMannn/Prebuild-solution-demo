@@ -33,10 +33,11 @@
     <Btn
       class="flex-auto"
       type="primary"
+      :color="colors.blue"
       :disabled="!uploadedFile || !hasRequiredColumns || !fileData || fileData.length === 0"
       @click="$emit('proceed', fileData)"
     >
-      Start New Airdrop
+    <span class="text-black">Start New Airdrop</span>
     </Btn>
   </div>
 </template>
@@ -44,6 +45,7 @@
 <script lang="ts" setup>
 import type { UploadCustomRequestOptions } from 'naive-ui';
 import type { FileInfo } from 'naive-ui/es/upload/src/interface';
+import colors from '~/tailwind.colors';
 
 defineEmits(['close', 'proceed']);
 
@@ -63,7 +65,7 @@ const hasRequiredColumns = computed<boolean>(() =>
 function uploadFileRequest({ file, onError, onFinish }: UploadCustomRequestOptions) {
   if (file.type !== 'text/csv' && file.type !== 'application/vnd.ms-excel') {
     console.warn(file.type);
-    message.warning('File must be of type CSV');
+    message.warning('File must be of CSV type.');
 
     /** Mark file as failed */
     onError();

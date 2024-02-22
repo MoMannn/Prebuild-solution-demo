@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 type Address = `0x${string}`;
+
 import SuccessSVG from '~/assets/images/success.svg';
 import colors from '~/tailwind.colors';
 import { useAccount, useConnect, useWalletClient } from 'use-wagmi';
@@ -8,9 +9,10 @@ definePageMeta({
   layout: 'claim',
 });
 useHead({
-  title: 'MENT NFT airdrop',
+  title: 'Mint your MENT Token',
 });
 
+const config = useRuntimeConfig();
 const { query } = useRoute();
 const router = useRouter();
 const message = useMessage();
@@ -20,7 +22,7 @@ const { handleError } = useErrors();
 const { address, isConnected } = useAccount();
 const { data: walletClient, refetch } = useWalletClient();
 const { connect, connectors } = useConnect();
-const { initContract, getTokenUri } = useContract();
+const { initContract, getTokenOfOwner, getTokenUri } = useContract();
 
 const loading = ref<boolean>(false);
 
@@ -34,19 +36,23 @@ async function claimAirdrop() {
   loading.value = true;
   try {
     await refetch();
+    await sleep(200);
     const timestamp = new Date().getTime();
 
     if (!walletClient.value) {
       await connect({ connector: connectors.value[0] });
+      await sleep(200);
 
       if (!walletClient.value) {
-        message.error('Could not connect with wallet');
+        message.error('Could not connect with your wallet.');
         loading.value = false;
         return;
       }
     }
 
-    const signature = await walletClient.value.signMessage({ message: `test\n${timestamp}` });
+    const signature = await walletClient.value.signMessage({
+      message: `Sign to verify and mint your free Ment NFT!\n${timestamp}`,
+    });
     const res = await $api.post<ClaimResponse>('/users/claim', {
       jwt: query.token?.toString() || '',
       signature,
@@ -57,13 +63,19 @@ async function claimAirdrop() {
       txWait.hash.value = res.data.transactionHash as Address;
 
       console.debug('Transaction', txWait.hash.value);
-      message.info('Minting of your NFT has begun.');
+      message.info('Minting of your MENT token has begun.');
 
       const receipt = await txWait.wait();
       console.debug(receipt);
-      message.success('You successfully claimed NFT');
+      message.success("You've successfully claimed your MENT token.");
 
-      if (receipt.data?.to && receipt.data?.logs[0].topics[3]) {
+      if (
+        config.public.METADATA_BASE_URI &&
+        config.public.METADATA_TOKEN &&
+        receipt.data?.logs[0].topics[3]
+      ) {
+        getMetadata(Number(receipt.data?.logs[0].topics[3]), res.data.transactionHash);
+      } else if (receipt.data?.to && receipt.data?.logs[0].topics[3]) {
         const nftId = Number(receipt.data?.logs[0].topics[3]);
 
         await loadNft(receipt.data.to, nftId, res.data.transactionHash);
@@ -72,20 +84,61 @@ async function claimAirdrop() {
       }
     }
   } catch (e) {
-    handleError(e);
+    if (
+      !config.public.CONTRACT_ADDRESS ||
+      !(await getMyNFT(config.public.CONTRACT_ADDRESS as Address))
+    ) {
+      handleError(e);
+    }
   }
   loading.value = false;
 }
 
-async function loadNft(contract: Address, id: number, transactionHash: string) {
+async function loadNft(contractAddress: Address, id: number, transactionHash: string) {
   try {
-    await initContract(contract);
+    await initContract(contractAddress);
     const url = await getTokenUri(id);
 
     const metadata = await fetch(url).then(response => {
       return response.json();
     });
-    router.push({ name: 'share', query: { ...metadata, txHash: transactionHash } });
+    router.push({ name: 'share', query: { ...metadata, nftId: id, txHash: transactionHash } });
+  } catch (e) {
+    console.error(e);
+    message.error('Fetch failed, missing NFT metadata!');
+  }
+}
+
+async function getMyNFT(contract: Address) {
+  try {
+    await initContract(contract);
+    const id = await getTokenOfOwner(0);
+    const url = await getTokenUri(Number(id));
+
+    const metadata = await fetch(url).then(response => {
+      return response.json();
+    });
+
+    if (metadata) {
+      message.success('You already claimed NFT');
+      router.push({ name: 'share', query: { ...metadata } });
+    } else {
+      return false;
+    }
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+async function getMetadata(id: number, transactionHash: string) {
+  try {
+    const url = `${config.public.METADATA_BASE_URI}${id}.json?token=${config.public.METADATA_TOKEN}`;
+
+    const metadata = await fetch(url).then(response => {
+      return response.json();
+    });
+    router.push({ name: 'share', query: { ...metadata, nftId: id, txHash: transactionHash } });
   } catch (e) {
     console.error(e);
     message.error('Fetch failed, missing NFT metadata!');
@@ -100,8 +153,8 @@ async function loadNft(contract: Address, id: number, transactionHash: string) {
     <div v-if="!isConnected" class="my-8 text-center">
       <h3 class="mb-6">Almost there!</h3>
       <p>
-        But first, connect compatible digital wallet. This step is crucial for securely receiving
-        and managing the MENT token you’ll about to receive.
+        But first, connect a compatible digital wallet. This step is crucial for securely receiving
+        and managing the MENT token you’re about to receive.
       </p>
     </div>
 
@@ -122,7 +175,7 @@ async function loadNft(contract: Address, id: number, transactionHash: string) {
       :loading="loading"
       @click="claimAirdrop()"
     >
-      Claim your MENT token
+      <span class="text-black">Claim your MENT token</span>
     </Btn>
   </div>
 </template>

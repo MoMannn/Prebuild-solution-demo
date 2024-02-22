@@ -8,34 +8,79 @@ import {
 import { getContract } from 'viem';
 import { moonbaseAlpha, moonbeam } from 'use-wagmi/chains';
 import { abi } from '~/lib/config/abi';
-import { Chains, Environments } from '~/lib/values/general.values';
+import { Chains } from '~/lib/values/general.values';
 
 export default function useContract() {
   const message = useMessage();
   const config = useRuntimeConfig();
   const { chain } = useNetwork();
   const { address } = useAccount();
-  const { switchNetwork } = useSwitchNetwork();
   const publicClient = usePublicClient();
   const { data: walletClient, refetch } = useWalletClient();
+  const { switchNetwork } = useSwitchNetwork({
+    onSuccess() {
+      if (importNft.value) {
+        _watchAsset(importNft.value);
+      }
+    },
+  });
 
   const usedChain = config.public.CHAIN_ID === Chains.MOONBASE ? moonbaseAlpha : moonbeam;
   const contract = ref();
+  const importNft = ref<string | null>(null);
+
+  async function getTokenOfOwner(index: number) {
+    return (await contract.value.read.tokenOfOwnerByIndex([address.value, index])) as number;
+  }
 
   async function getTokenUri(id: number) {
     return (await contract.value.read.tokenURI([id])) as string;
   }
 
-  /**
-   * Helper for initializing specific contract
-   */
-  async function initContract(contractAddress: string) {
+  async function watchAsset(nftId: string | number) {
     if (!walletClient.value) {
       await refetch();
       await sleep(200);
     }
     if (!chain || !chain.value || chain?.value.id !== usedChain.id) {
-      switchNetwork(usedChain.id);
+      importNft.value = `${nftId}`;
+      await switchNetwork(usedChain.id);
+    } else {
+      _watchAsset(nftId);
+    }
+  }
+
+  async function _watchAsset(nftId: string | number) {
+    try {
+      const contractAddress = contract.value?.address
+        ? contract.value.address
+        : config.public.CONTRACT_ADDRESS;
+
+      await walletClient.value.watchAsset({
+        type: 'ERC721',
+        options: {
+          address: contractAddress,
+          tokenId: `${nftId}`,
+        },
+      });
+      importNft.value = null;
+
+      message.success("You've successfully imported your MENT token to your wallet.");
+    } catch (e) {
+      contractError(e);
+    }
+  }
+
+  /**
+   * Helper for initializing specific contract
+   */
+  async function initContract(contractAddress: `0x${string}`) {
+    if (!walletClient.value) {
+      await refetch();
+      await sleep(200);
+    }
+    if (!chain || !chain.value || chain?.value.id !== usedChain.id) {
+      await switchNetwork(usedChain.id);
     }
 
     if (!contractAddress) {
@@ -85,6 +130,9 @@ export default function useContract() {
       } else if (errorData.includes('valid recovery code')) {
         // Problem with embedded signature
         msg = 'Problem with embedded wallet';
+      } else if (errorData.includes('Suggested NFT is not owned by the selected account ')) {
+        msg =
+          'Suggested NFT is not owned by the selected account, please try again with other wallet.';
       } else if (
         errorData.includes('user rejected transaction') ||
         errorData.includes('User rejected the request')
@@ -103,7 +151,9 @@ export default function useContract() {
   return {
     contract,
     contractError,
+    getTokenOfOwner,
     getTokenUri,
     initContract,
+    watchAsset,
   };
 }

@@ -10,7 +10,7 @@
       :loading="loading || isLoading"
       @click="disconnectWallet()"
     >
-      Disconnect
+      <span class="text-black">Disconnect</span>
     </Btn>
     <Btn
       v-else-if="isConnected"
@@ -21,7 +21,7 @@
       :loading="loading || isLoading"
       @click="login()"
     >
-      Login
+      <span class="text-black">Login</span>
     </Btn>
     <Btn
       v-else
@@ -32,7 +32,7 @@
       :loading="loading || isLoading"
       @click="modalWalletVisible = true"
     >
-      Connect wallet
+      <span class="text-black">Connect your wallet</span>
     </Btn>
   </div>
 
@@ -87,9 +87,11 @@ async function login() {
 
   try {
     await refetch();
+    await sleep(200);
 
     if (!walletClient.value) {
       await connect({ connector: connectors.value[0] });
+      await sleep(200);
 
       if (!walletClient.value) {
         error('Could not connect with wallet');
@@ -105,7 +107,7 @@ async function login() {
     }
 
     const timestamp = new Date().getTime();
-    const message = 'test';
+    const message = 'Sign to verify and mint your free Ment NFT!';
 
     const signature = await walletClient.value.signMessage({
       message: `${message}\n${timestamp}`,

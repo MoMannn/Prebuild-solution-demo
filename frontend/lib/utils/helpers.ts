@@ -79,8 +79,8 @@ export function copyToClipboard(text: string) {
  * OG data
  */
 export function prepareOG(
-  title = 'Ment MFT Airdrop',
-  description = '',
+  title = 'Mint your MENT Token',
+  description = 'Powered by Apillon.',
   image = '/images/superrare.jpg',
   url = 'https://nft.ment.si/'
 ) {

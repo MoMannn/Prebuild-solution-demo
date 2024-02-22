@@ -78,13 +78,14 @@ export class Cron {
             const token = await generateEmailAirdropToken(users[i].email);
             await SmtpSendTemplate(
               [users[i].email],
-              "Claim your NFT",
+              "Claim your MENT token",
               "en-airdrop-claim",
               {
                 appUrl: env.APP_URL,
                 link: `${env.APP_URL}/claim?token=${token}`,
                 claimExpiresIn: env.CLAIM_EXPIRES_IN,
-              }
+              },
+              "MENT"
             );
             updates.push(
               `(${users[i].id}, '${users[i].email}', ${
@@ -95,11 +96,12 @@ export class Cron {
             //Currently, waiting line for airdrop is full.Send info email and set appropriate status
             await SmtpSendTemplate(
               [users[i].email],
-              "You are in waiting line for NFT claim",
+              "You have been placed on a waitlist for MENT token",
               "en-airdrop-waiting-line",
               {
                 appUrl: env.APP_URL,
-              }
+              },
+              "MENT"
             );
             updates.push(
               `(${users[i].id}, '${users[i].email}', ${
@@ -210,13 +212,14 @@ export class Cron {
               const token = await generateEmailAirdropToken(user.email);
               await SmtpSendTemplate(
                 [user.email],
-                "Claim your NFT",
+                "Claim your MENT token",
                 "en-airdrop-claim",
                 {
                   appUrl: env.APP_URL,
                   link: `${env.APP_URL}/claim?token=${token}`,
                   claimExpiresIn: env.CLAIM_EXPIRES_IN,
-                }
+                },
+                "MENT"
               );
             } catch (err) {
               await mysql.paramExecute(
