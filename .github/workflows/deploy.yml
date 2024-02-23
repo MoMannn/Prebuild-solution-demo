@@ -3,7 +3,7 @@ name: Deploy Website
 on:
   push:
     branches:
-      - staging
+      - main
 
 defaults:
   run:
@@ -32,7 +32,7 @@ jobs:
         env:
           APILLON_API_KEY: ${{ secrets.APILLON_API_KEY }}
           APILLON_API_SECRET: ${{ secrets.APILLON_API_SECRET }}
-          WEBSITE_UUID: ${{ secrets.WEBSITE_UUID_STAGING }}
+          WEBSITE_UUID: ${{ secrets.WEBSITE_UUID }}
         run: |
           npm i -g @apillon/cli
           apillon hosting deploy-website ./.output/public --uuid $WEBSITE_UUID --key $APILLON_API_KEY --secret $APILLON_API_SECRET
