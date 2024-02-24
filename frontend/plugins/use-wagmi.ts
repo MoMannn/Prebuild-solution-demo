@@ -1,5 +1,5 @@
 import { UseWagmiPlugin, configureChains, createConfig } from 'use-wagmi';
-import { moonbaseAlpha, moonbeam } from 'use-wagmi/chains';
+import { moonbaseAlpha, moonbeam, astar } from 'use-wagmi/chains';
 import { MetaMaskConnector } from 'use-wagmi/connectors/metaMask';
 import { CoinbaseWalletConnector } from 'use-wagmi/connectors/coinbaseWallet';
 import { WalletConnectConnector } from 'use-wagmi/connectors/walletConnect';
@@ -10,7 +10,16 @@ export default defineNuxtPlugin(nuxtApp => {
   const nuxtConfig = useRuntimeConfig();
   const chainId = nuxtConfig.public.CHAIN_ID;
 
-  const chain = chainId === Chains.MOONBASE ? moonbaseAlpha : moonbeam;
+  let chain;
+
+  if (chainId === Chains.MOONBASE) {
+    chain = moonbaseAlpha;
+  } else if (chainId === Chains.ASTAR) {
+    chain = astar;
+  } else {
+    chain = moonbeam;
+  }
+
   const networks = [chain];
 
   const { chains, publicClient, webSocketPublicClient } = configureChains(networks, [

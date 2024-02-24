@@ -6,7 +6,7 @@ import {
   useWalletClient,
 } from 'use-wagmi';
 import { getContract } from 'viem';
-import { moonbaseAlpha, moonbeam } from 'use-wagmi/chains';
+import { moonbaseAlpha, moonbeam, astar } from 'use-wagmi/chains';
 import { abi } from '~/lib/config/abi';
 import { Chains } from '~/lib/values/general.values';
 
@@ -25,7 +25,16 @@ export default function useContract() {
     },
   });
 
-  const usedChain = config.public.CHAIN_ID === Chains.MOONBASE ? moonbaseAlpha : moonbeam;
+  let usedChain: any;
+
+  if (config.public.CHAIN_ID === Chains.MOONBASE) {
+    usedChain = moonbaseAlpha;
+  } else if (config.public.CHAIN_ID === Chains.ASTAR) {
+    usedChain = astar;
+  } else {
+    usedChain = moonbeam;
+  }
+
   const contract = ref();
   const importNft = ref<string | null>(null);
 
