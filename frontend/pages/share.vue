@@ -2,7 +2,7 @@
 import { Chains } from '~/lib/values/general.values';
 
 useHead({
-  title: 'PINK PASS',
+  title: 'Apillon prebuild solution.',
 });
 
 const router = useRouter();
