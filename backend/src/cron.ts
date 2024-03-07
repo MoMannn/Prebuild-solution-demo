@@ -1,22 +1,20 @@
-import { CronJob } from "cron";
-import { AirdropStatus } from "./models/user";
-import { dateToSqlString } from "./lib/sql-utils";
-import { SqlModelStatus } from "./models/base-sql-model";
-import { MysqlConnectionManager } from "./lib/mysql-connection-manager";
-import { SmtpSendTemplate } from "./lib/node-mailer";
-import { env } from "./config/env";
-import { generateEmailAirdropToken } from "./lib/jwt";
-import { LogType, writeLog } from "./lib/logger";
+import { CronJob } from 'cron';
+import { AirdropStatus } from './models/user';
+import { dateToSqlString } from './lib/sql-utils';
+import { SqlModelStatus } from './models/base-sql-model';
+import { MysqlConnectionManager } from './lib/mysql-connection-manager';
+import { SmtpSendTemplate } from './lib/node-mailer';
+import { env } from './config/env';
+import { generateEmailAirdropToken } from './lib/jwt';
+import { LogType, writeLog } from './lib/logger';
 
 export class Cron {
   private cronJobs: CronJob[] = [];
 
   constructor() {
-    this.cronJobs.push(new CronJob("* * * * *", this.sendEmail, null, false));
+    this.cronJobs.push(new CronJob('* * * * *', this.sendEmail, null, false));
     if (env.MAX_SUPPLY > 0) {
-      this.cronJobs.push(
-        new CronJob("* * * * *", this.processExpiredClaims, null, false)
-      );
+      this.cronJobs.push(new CronJob('* * * * *', this.processExpiredClaims, null, false));
     }
   }
 
@@ -47,9 +45,10 @@ export class Cron {
             ${AirdropStatus.AIRDROP_COMPLETED},
             ${AirdropStatus.IN_WAITING_LINE}
           )
-          AND status = ${SqlModelStatus.ACTIVE}
+          AND status = @status
         ;
-       `
+       `,
+        { status: SqlModelStatus.ACTIVE }
       );
       const numOfReservations = res[0].total;
       availableNftLeft = env.MAX_SUPPLY - numOfReservations;
@@ -60,13 +59,13 @@ export class Cron {
     try {
       const users = await mysql.paramExecute(
         `SELECT * FROM user WHERE
-          airdrop_status = ${AirdropStatus.PENDING}
-          AND status = ${SqlModelStatus.ACTIVE}
-          AND email_start_send_time < '${dateToSqlString(new Date())}'
+          airdrop_status = @airdrop_status
+          AND status = @status
+          AND email_start_send_time < @date
           FOR UPDATE
         ;
        `,
-        null,
+        { airdrop_status: AirdropStatus.PENDING, status: SqlModelStatus.ACTIVE, date: new Date() },
         conn
       );
 
@@ -78,14 +77,14 @@ export class Cron {
             const token = await generateEmailAirdropToken(users[i].email);
             await SmtpSendTemplate(
               [users[i].email],
-              "Claim your NFT",
-              "en-airdrop-claim",
+              'Claim your NFT',
+              'en-airdrop-claim',
               {
                 appUrl: env.APP_URL,
                 link: `${env.APP_URL}/claim?token=${token}`,
                 claimExpiresIn: env.CLAIM_EXPIRES_IN,
               },
-              "Apillon"
+              'Apillon'
             );
             updates.push(
               `(${users[i].id}, '${users[i].email}', ${
@@ -96,12 +95,12 @@ export class Cron {
             //Currently, waiting line for airdrop is full.Send info email and set appropriate status
             await SmtpSendTemplate(
               [users[i].email],
-              "You have been placed on a waitlist for NFT Airdrop token",
-              "en-airdrop-waiting-line",
+              'You have been placed on a waitlist for NFT Airdrop token',
+              'en-airdrop-waiting-line',
               {
                 appUrl: env.APP_URL,
               },
-              "Apillon"
+              'Apillon'
             );
             updates.push(
               `(${users[i].id}, '${users[i].email}', ${
@@ -110,11 +109,11 @@ export class Cron {
             );
           }
         } catch (e) {
-          writeLog(LogType.ERROR, e, "cron.ts", "sendEmail");
+          writeLog(LogType.ERROR, e, 'cron.ts', 'sendEmail');
           updates.push(
-            `(${users[i].id}, '${users[i].email}', ${
-              AirdropStatus.EMAIL_ERROR
-            }, '${dateToSqlString(new Date())}')`
+            `(${users[i].id}, '${users[i].email}', ${AirdropStatus.EMAIL_ERROR}, '${dateToSqlString(
+              new Date()
+            )}')`
           );
         }
       }
@@ -122,7 +121,7 @@ export class Cron {
       if (updates.length > 0) {
         const sql = `
         INSERT INTO user (id, email, airdrop_status, email_sent_time)
-        VALUES ${updates.join(",")}
+        VALUES ${updates.join(',')}
         ON DUPLICATE KEY UPDATE
         airdrop_status = VALUES(airdrop_status),
         email_sent_time = VALUES(email_sent_time)`;
@@ -132,9 +131,10 @@ export class Cron {
 
       await mysql.commit(conn);
     } catch (e) {
-      writeLog(LogType.ERROR, e, "cron.ts", "sendEmail");
+      writeLog(LogType.ERROR, e, 'cron.ts', 'sendEmail');
       await mysql.rollback(conn);
     }
+    await MysqlConnectionManager.destroyInstance();
   }
 
   async processExpiredClaims() {
@@ -145,66 +145,61 @@ export class Cron {
       const usersWithExpiredClaim = (
         await mysql.paramExecute(
           `SELECT * FROM user WHERE
-          airdrop_status = ${AirdropStatus.EMAIL_SENT}
-          AND status = ${SqlModelStatus.ACTIVE}
+          airdrop_status = @airdrop_status
+          AND status = @status
           AND DATE_ADD(email_sent_time, INTERVAL ${env.CLAIM_EXPIRES_IN} HOUR) < NOW()
           FOR UPDATE
         ;
        `,
-          null,
+          { airdrop_status: AirdropStatus.EMAIL_SENT, status: SqlModelStatus.ACTIVE },
           conn
         )
-      ).map((x) => x.id);
+      ).map(x => x.id);
 
       if (usersWithExpiredClaim.length) {
         //Update those users to claim expired
         await mysql.paramExecute(
           `UPDATE user 
-          SET airdrop_status = ${AirdropStatus.AIRDROP_CLAIM_EXPIRED}
-          WHERE id IN (${usersWithExpiredClaim.join(",")})
+          SET airdrop_status = @airdrop_status
+          WHERE id IN (${usersWithExpiredClaim.join(',')})
         ;
        `,
-          null,
+          { airdrop_status: AirdropStatus.AIRDROP_CLAIM_EXPIRED },
           conn
         );
-        console.info(
-          usersWithExpiredClaim.length +
-            " users updated to AIRDROP_CLAIM_EXPIRED"
-        );
+        console.info(usersWithExpiredClaim.length + ' users updated to AIRDROP_CLAIM_EXPIRED');
 
         //Get users in waiting line and set their airdrop status to PENDING, so that they will recieve email for claim
         const usersInWaitingLine = await mysql.paramExecute(
           `SELECT * FROM user WHERE
-          airdrop_status = ${AirdropStatus.IN_WAITING_LINE}
-          AND status = ${SqlModelStatus.ACTIVE}
+          airdrop_status = @airdrop_status
+          AND status = @status
           ORDER BY createTime ASC
           LIMIT ${usersWithExpiredClaim.length}
           FOR UPDATE
         ;
        `,
-          null,
+          { airdrop_status: AirdropStatus.IN_WAITING_LINE, status: SqlModelStatus.ACTIVE },
           conn
         );
 
-        console.info(
-          "Num of users in waiting line: " + usersInWaitingLine.length
-        );
+        console.info('Num of users in waiting line: ' + usersInWaitingLine.length);
 
         if (usersInWaitingLine.length) {
           await mysql.paramExecute(
             `UPDATE user 
                 SET 
-                airdrop_status = ${AirdropStatus.EMAIL_SENT},
+                airdrop_status = @airdrop_status,
                 email_sent_time = NOW()
-                WHERE id IN (${usersInWaitingLine.map((x) => x.id).join(",")})
+                WHERE id IN (${usersInWaitingLine.map(x => x.id).join(',')})
               ;
             `,
-            null,
+            { airdrop_status: AirdropStatus.EMAIL_SENT },
             conn
           );
           console.info(
-            usersInWaitingLine.map((x) => x.id).join(",") +
-              " should me moved from waiting line. Sending emails...."
+            usersInWaitingLine.map(x => x.id).join(',') +
+              ' should me moved from waiting line. Sending emails....'
           );
 
           for (const user of usersInWaitingLine) {
@@ -212,23 +207,23 @@ export class Cron {
               const token = await generateEmailAirdropToken(user.email);
               await SmtpSendTemplate(
                 [user.email],
-                "Claim your NFT",
-                "en-airdrop-claim",
+                'Claim your NFT',
+                'en-airdrop-claim',
                 {
                   appUrl: env.APP_URL,
                   link: `${env.APP_URL}/claim?token=${token}`,
                   claimExpiresIn: env.CLAIM_EXPIRES_IN,
                 },
-                "Apillon"
+                'Apillon'
               );
             } catch (err) {
               await mysql.paramExecute(
                 `UPDATE user 
-                  SET airdrop_status = ${AirdropStatus.EMAIL_ERROR},
-                  WHERE id = ${user.id})
+                  SET airdrop_status = @airdrop_status,
+                  WHERE id = @user_id)
               ;
             `,
-                null,
+                { airdrop_status: AirdropStatus.EMAIL_ERROR, user_id: user.id },
                 conn
               );
             }
@@ -238,8 +233,9 @@ export class Cron {
 
       await mysql.commit(conn);
     } catch (e) {
-      writeLog(LogType.ERROR, e, "cron.ts", "processExpiredClaims");
+      writeLog(LogType.ERROR, e, 'cron.ts', 'processExpiredClaims');
       await mysql.rollback(conn);
     }
+    await MysqlConnectionManager.destroyInstance();
   }
 }
