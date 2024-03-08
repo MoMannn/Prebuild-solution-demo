@@ -1,5 +1,6 @@
 <template>
   <n-layout class="relative h-screen" :native-scrollbar="false">
+    <div class="fixed right-0 h-screen hidden lg:block" id="grill"></div>
     <div ref="headerRef">
       <Header logo-center hide-login />
     </div>
@@ -16,6 +17,7 @@
 </template>
 
 <script lang="ts" setup>
+import grill from '@subsocial/grill-widget';
 const { width } = useWindowSize();
 
 /** Heading height */
@@ -31,6 +33,24 @@ const containerStyle = computed(() => {
 
 onMounted(() => {
   setHeight();
+
+  const config = {
+    theme: 'dark',
+    widgetElementId: 'grill',
+    hub: {
+      id: '13016',
+    },
+    channel: {
+      type: 'channel',
+      id: '80284',
+      settings: {
+        enableBackButton: false,
+        enableLoginButton: true,
+        enableInputAutofocus: true,
+      },
+    },
+  };
+  grill.init(config);
 });
 
 watch(
